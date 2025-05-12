@@ -39,7 +39,51 @@ SELECT *  FROM COVID WHERE VENTILATORS = '';
 #LEAST NUMBER OF CASES
 SELECT * FROM COVID ORDER BY POSITIVE ASC LIMIT 5;
 
-##DROPING OF TABLE COLUMN
+#DROPING OF TABLE COLUMN
 ALTER TABLE	COVID DROP COLUMN `REPEATED SAMPLES`;
-
 SELECT * FROM COVID;
+
+#DATA RETRIVEL
+SELECT * FROM covid_worldwide;
+Select specific columns with formatting
+SELECT 
+    Country,
+    CONCAT(FORMAT(Total_Cases, 0), ' cases') AS Total_Cases,
+    CONCAT(FORMAT(Total_Deaths, 0), ' deaths') AS Total_Deaths,
+    ROUND((Total_Deaths/Total_Cases)*100, 2) AS Death_Percentage
+FROM covid_worldwide
+WHERE Total_Cases > 0
+ORDER BY Total_Cases DESC;
+
+#Combine high case countries and high death rate countries - Using Unions
+
+(SELECT 
+    Country,
+    Total_Cases AS Value,
+    'High Cases' AS Category
+FROM covid_worldwide
+ORDER BY Total_Cases DESC
+LIMIT 10)
+UNION
+(SELECT 
+    Country,
+    ROUND((Total_Deaths/Total_Cases)*100, 2) AS Value,
+    'High Death Rate' AS Category
+FROM covid_worldwide
+WHERE Total_Cases > 100000
+ORDER BY Value DESC
+LIMIT 10)
+ORDER BY Category, Value DESC;
+
+#Assuming we have a region column, group by region (GROUPBY FUNCTION)
+SELECT 
+    Region,
+    SUM(Total_Cases) AS Total_Region_Cases,
+    SUM(Total_Deaths) AS Total_Region_Deaths,
+    ROUND(SUM(Total_Deaths)/SUM(Total_Cases)*100, 2) AS Region_Death_Rate,
+    SUM(Population) AS Region_Population,
+    ROUND(SUM(Total_Cases)/SUM(Population)*100, 2) AS Region_Infection_Rate
+FROM covid_worldwide
+GROUP BY Region
+HAVING SUM(Population) > 0
+ORDER BY Total_Region_Cases DESC;
